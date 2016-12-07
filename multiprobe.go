@@ -1,9 +1,9 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "net/http"
+	"fmt"
+	"log"
+	"net/http"
 	"os"
 
     "github.com/gorilla/mux"
@@ -12,12 +12,12 @@ import (
 func main() {
 
 	router := mux.NewRouter().StrictSlash(true)
-    router.HandleFunc("/", Index)
-    router.HandleFunc("/tag", SpitTag)
-    router.HandleFunc("/hostname", SpitHostname)
-    router.HandleFunc("/both", SpitBoth)
+	router.HandleFunc("/", Index)
+	router.HandleFunc("/tag", SpitTag)
+	router.HandleFunc("/hostname", SpitHostname)
+	router.HandleFunc("/both", SpitBoth)
 
-    log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -25,21 +25,15 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func SpitTag(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprintln(w, "v1")
+	fmt.Fprintln(w, "v1")
 }
 
 func SpitHostname(w http.ResponseWriter, r *http.Request) {
-	localHostname, err := os.Hostname()
-	if err != nil {
-		panic(err)
-	}
-    fmt.Fprintln(w, localHostname)
+	localHostname := os.Getenv("HOSTNAME")
+	fmt.Fprintln(w, localHostname)
 }
 
 func SpitBoth(w http.ResponseWriter, r *http.Request) {
-	localHostname, err := os.Hostname()
-	if err != nil {
-		panic(err)
-	}
-    fmt.Fprintln(w, "v1 ", localHostname)
+	localHostname := os.Getenv("HOSTNAME")
+	fmt.Fprintln(w, "v1 %v", localHostname)
 }
