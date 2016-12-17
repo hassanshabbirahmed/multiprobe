@@ -30,7 +30,6 @@ func SpitTag(w http.ResponseWriter, r *http.Request) {
 
 func SpitHostname(w http.ResponseWriter, r *http.Request) {
 	localHostname := os.Getenv("HOSTNAME")
-	localHostname = "blabla"
 	fmt.Println(localHostname)
 	fmt.Fprintln(w, localHostname)
 }
