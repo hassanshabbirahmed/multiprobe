@@ -5,17 +5,19 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
+	"math"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
-
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", Index)
 	router.HandleFunc("/tag", SpitTag)
 	router.HandleFunc("/hostname", SpitHostname)
 	router.HandleFunc("/both", SpitBoth)
+	router.HandleFunc("/primetime", PrimeTime)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -25,7 +27,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func SpitTag(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "v1")
+	fmt.Fprintln(w, "v3")
 }
 
 func SpitHostname(w http.ResponseWriter, r *http.Request) {
@@ -36,5 +38,61 @@ func SpitHostname(w http.ResponseWriter, r *http.Request) {
 
 func SpitBoth(w http.ResponseWriter, r *http.Request) {
 	localHostname := os.Getenv("HOSTNAME")
-	fmt.Fprintln(w, "v1 %v", localHostname)
+	fmt.Fprintln(w, "v3 %v", localHostname)
+}
+
+func PrimeTime(w http.ResponseWriter, r *http.Request) {
+	const N = 1000000
+	var x, y, n int
+    nsqrt := math.Sqrt(N)
+
+    is_prime := [N]bool{}
+
+    start := time.Now()
+
+    for x = 1; float64(x) <= nsqrt; x++ {
+        for y = 1; float64(y) <= nsqrt; y++ {
+            n = 4*(x*x) + y*y
+            if n <= N && (n%12 == 1 || n%12 == 5) {
+                is_prime[n] = !is_prime[n]
+            }
+            n = 3*(x*x) + y*y
+            if n <= N && n%12 == 7 {
+                is_prime[n] = !is_prime[n]
+            }
+            n = 3*(x*x) - y*y
+            if x > y && n <= N && n%12 == 11 {
+                is_prime[n] = !is_prime[n]
+            }
+        }
+    }
+
+    for n = 5; float64(n) <= nsqrt; n++ {
+        if is_prime[n] {
+            for y = n * n; y < N; y += n * n {
+                is_prime[y] = false
+            }
+        }
+    }
+
+    is_prime[2] = true
+    is_prime[3] = true
+
+    primes := make([]int, 0, 1270606)
+    for x = 0; x < len(is_prime)-1; x++ {
+        if is_prime[x] {
+            primes = append(primes, x)
+        }
+    }
+
+    elapsed := time.Since(start)
+
+    // primes is now a slice that contains all the
+    // primes numbers up to N
+
+    // let's print them
+    //for _, x := range primes {
+    //    fmt.Println(x)
+    //}
+    fmt.Fprintln(w, elapsed)
 }
