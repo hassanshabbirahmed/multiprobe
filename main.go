@@ -42,7 +42,7 @@ func SpitBoth(w http.ResponseWriter, r *http.Request) {
 }
 
 func PrimeTime(w http.ResponseWriter, r *http.Request) {
-	const N = 1000000
+	const N = 1000000000
 	var x, y, n int
     nsqrt := math.Sqrt(N)
 
