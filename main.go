@@ -8,28 +8,22 @@ import (
 	"os"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", Index)
-	router.HandleFunc("/tag", SpitTag)
-	router.HandleFunc("/hostname", SpitHostname)
-	router.HandleFunc("/both", SpitBoth)
-	router.HandleFunc("/primetime", PrimeTime)
-	router.HandleFunc("/metrics", PrometheusMetrics)
+	http.HandleFunc("/", Index)
+	http.HandleFunc("/tag", SpitTag)
+	http.HandleFunc("/hostname", SpitHostname)
+	http.HandleFunc("/both", SpitBoth)
+	http.HandleFunc("/primetime", PrimeTime)
+	http.Handle("/metrics", promhttp.Handler())
 
-	log.Fatal(http.ListenAndServe(":8585", router))
-}
-
-func PrometheusMetrics(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, promhttp.Handler())
+	log.Fatal(http.ListenAndServe(":8585", nil))
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Usage: <url>/tag -or- <url>/hostname")
+	fmt.Fprintln(w, "Usage: <url>/tag -or- <url>/hostname -or- <url>/metrics")
 }
 
 func SpitTag(w http.ResponseWriter, r *http.Request) {
