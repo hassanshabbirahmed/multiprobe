@@ -2,103 +2,36 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"math"
+	"io/ioutil"
 	"net/http"
-	"os"
-	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+type Page struct {
+	Title string
+	Body  []byte
+}
+
+func loadPage(title string) (*Page, error) {
+	filename := title
+	body, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return &Page{Title: title, Body: body}, nil
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "The quick brown fox jumped over the lazy %s!", r.URL.Path[1:])
+}
+
+func viewHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/view/"):]
+	p, _ := loadPage(title)
+	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+}
+
 func main() {
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", Index)
-	router.HandleFunc("/tag", SpitTag)
-	router.HandleFunc("/hostname", SpitHostname)
-	router.HandleFunc("/both", SpitBoth)
-	router.HandleFunc("/primetime", PrimeTime)
-	router.HandleFunc("/metrics", PrometheusMetrics)
-
-	log.Fatal(http.ListenAndServe(":8585", router))
-}
-
-func PrometheusMetrics(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, promhttp.Handler())
-}
-
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Usage: <url>/tag -or- <url>/hostname")
-}
-
-func SpitTag(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "v3")
-}
-
-func SpitHostname(w http.ResponseWriter, r *http.Request) {
-	localHostname := os.Getenv("HOSTNAME")
-	fmt.Println(localHostname)
-	fmt.Fprintln(w, localHostname)
-}
-
-func SpitBoth(w http.ResponseWriter, r *http.Request) {
-	localHostname := os.Getenv("HOSTNAME")
-	fmt.Fprintln(w, "v3 %v", localHostname)
-}
-
-func PrimeTime(w http.ResponseWriter, r *http.Request) {
-	const N = 1000000000
-	var x, y, n int
-	nsqrt := math.Sqrt(N)
-
-	is_prime := [N]bool{}
-
-	start := time.Now()
-
-	for x = 1; float64(x) <= nsqrt; x++ {
-		for y = 1; float64(y) <= nsqrt; y++ {
-			n = 4*(x*x) + y*y
-			if n <= N && (n%12 == 1 || n%12 == 5) {
-				is_prime[n] = !is_prime[n]
-			}
-			n = 3*(x*x) + y*y
-			if n <= N && n%12 == 7 {
-				is_prime[n] = !is_prime[n]
-			}
-			n = 3*(x*x) - y*y
-			if x > y && n <= N && n%12 == 11 {
-				is_prime[n] = !is_prime[n]
-			}
-		}
-	}
-
-	for n = 5; float64(n) <= nsqrt; n++ {
-		if is_prime[n] {
-			for y = n * n; y < N; y += n * n {
-				is_prime[y] = false
-			}
-		}
-	}
-
-	is_prime[2] = true
-	is_prime[3] = true
-
-	primes := make([]int, 0, 1270606)
-	for x = 0; x < len(is_prime)-1; x++ {
-		if is_prime[x] {
-			primes = append(primes, x)
-		}
-	}
-
-	elapsed := time.Since(start)
-
-	// primes is now a slice that contains all the
-	// primes numbers up to N
-
-	// let's print them
-	//for _, x := range primes {
-	//    fmt.Println(x)
-	//}
-	fmt.Fprintln(w, elapsed)
+	http.HandleFunc("/view/", viewHandler)
+	http.HandleFunc("/", handler)
+	http.ListenAndServe(":8080", nil)
 }
