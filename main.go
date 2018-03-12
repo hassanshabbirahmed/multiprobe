@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Page struct {
@@ -31,6 +33,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	counter := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "api_requests_total",
+			Help: "A counter for requests to the wrapped handler",
+		},
+		[]string{"code", "method"},
+	)
+
 	http.HandleFunc("/view/", viewHandler)
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8080", nil)
