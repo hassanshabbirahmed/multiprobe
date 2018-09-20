@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -19,13 +18,8 @@ func main() {
 	router.HandleFunc("/hostname", SpitHostname)
 	router.HandleFunc("/both", SpitBoth)
 	router.HandleFunc("/primetime", PrimeTime)
-	router.HandleFunc("/metrics", PrometheusMetrics)
 
 	log.Fatal(http.ListenAndServe(":8585", router))
-}
-
-func PrometheusMetrics(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, promhttp.Handler())
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
