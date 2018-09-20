@@ -1,0 +1,30 @@
+# Default values for cluster-directory
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: docker-registry.booking.com/hshabbir/multiprobe
+  tag: stress
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  annotations:
+    balancer:
+      hostname: multiprobe.prod.booking.com
+      hostpath: /
+      locality: true
+      scope: internal
+      timeout: 600s
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

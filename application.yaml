@@ -1,0 +1,28 @@
+apiVersion: shipper.booking.com/v1
+kind: Application
+metadata:
+  name: blue-hulk
+spec:
+  template:
+    clusterRequirements:
+      regions:
+      - name: eu-nl
+    chart:
+      name: multiprobe
+      version: 0.1.0
+      repoUrl: https://charts.prod.booking.com/charts
+    clusterRequirements:
+      regions:
+      - name: eu-nl
+    values: 
+      replicaCount: 1
+    strategy:
+      steps:
+      - name: full on
+        capacity:
+          incumbent: 0
+          contender: 100
+        traffic:
+          incumbent: 0
+          contender: 100
+
