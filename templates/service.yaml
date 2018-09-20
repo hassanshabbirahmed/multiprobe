@@ -5,7 +5,7 @@ metadata:
   annotations:
     booking.balancer.hostname: {{ .Values.service.annotations.balancer.hostname }}
     booking.balancer.hostpath: {{ .Values.service.annotations.balancer.hostpath }}
-    booking.balancer.locality: {{ .Values.service.annotations.balancer.locality }}
+    booking.balancer.locality: "{{ .Values.service.annotations.balancer.locality }}"
     booking.balancer.scope: {{ .Values.service.annotations.balancer.scope }}
     booking.balancer.timeout: {{ .Values.service.annotations.balancer.timeout }}
   labels:

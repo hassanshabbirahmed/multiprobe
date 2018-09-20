@@ -17,13 +17,13 @@ func main() {
 	router.HandleFunc("/tag", SpitTag)
 	router.HandleFunc("/hostname", SpitHostname)
 	router.HandleFunc("/both", SpitBoth)
-	router.HandleFunc("/primetime", PrimeTime)
+	router.HandleFunc("/prime", PrimeTime)
 
-	log.Fatal(http.ListenAndServe(":8585", router))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Usage: <url>/tag -or- <url>/hostname")
+	fmt.Fprintln(w, "Usage: <url>/tag -or- <url>/hostname or <url>/prime")
 }
 
 func SpitTag(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func SpitBoth(w http.ResponseWriter, r *http.Request) {
 }
 
 func PrimeTime(w http.ResponseWriter, r *http.Request) {
-	const N = 1000000000
+	const N = 1000000
 	var x, y, n int
 	nsqrt := math.Sqrt(N)
 

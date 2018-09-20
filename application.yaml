@@ -1,7 +1,7 @@
 apiVersion: shipper.booking.com/v1
 kind: Application
 metadata:
-  name: blue-hulk
+  name: multiprobe
 spec:
   template:
     clusterRequirements:
