@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiprobe UI</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 0.5em; }
+        a { text-decoration: none; color: #007bff; }
+        a:hover { text-decoration: underline; }
+        .endpoint { margin-bottom: 1em; padding: 1em; border: 1px solid #ddd; border-radius: 4px; }
+        .endpoint-name { font-weight: bold; }
+        .note { font-style: italic; color: #777; }
+    </style>
+</head>
+<body>
+    <h1>Multiprobe Endpoints</h1>
+    <ul>
+        <li class="endpoint">
+            <span class="endpoint-name">/tag</span>: <a href="/tag">/tag</a> - Displays the application tag.
+        </li>
+        <li class="endpoint">
+            <span class="endpoint-name">/hostname</span>: <a href="/hostname">/hostname</a> - Displays the server hostname.
+        </li>
+        <li class="endpoint">
+            <span class="endpoint-name">/both</span>: <a href="/both">/both</a> - Displays both tag and hostname.
+        </li>
+        <li class="endpoint">
+            <span class="endpoint-name">/primetime</span>: <a href="/primetime">/primetime</a> - Calculates prime numbers.
+            <p class="note">Note: This endpoint can be slow to respond as it performs a significant computation.</p>
+        </li>
+        <li class="endpoint">
+            <span class="endpoint-name">/metrics</span>: <a href="/metrics">/metrics</a> - Exposes Prometheus metrics.
+        </li>
+    </ul>
+</body>
+</html>

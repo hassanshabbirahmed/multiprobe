@@ -13,8 +13,10 @@ import (
 )
 
 func main() {
+	go ShowSimpleUI() // Launch the UI in a new goroutine
+
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", Index)
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/"))))
 	router.HandleFunc("/tag", SpitTag)
 	router.HandleFunc("/hostname", SpitHostname)
 	router.HandleFunc("/both", SpitBoth)
@@ -26,10 +28,6 @@ func main() {
 
 func PrometheusMetrics(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, promhttp.Handler())
-}
-
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Usage: <url>/tag -or- <url>/hostname")
 }
 
 func SpitTag(w http.ResponseWriter, r *http.Request) {
