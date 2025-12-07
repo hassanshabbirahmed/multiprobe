@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -13,21 +15,24 @@ import (
 )
 
 func main() {
-	go ShowSimpleUI() // Launch the UI in a new goroutine
-
 	router := mux.NewRouter().StrictSlash(true)
-	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/"))))
+	// Move the static file handler to the end or ensure it doesn't match other paths if using PathPrefix("/")
+	// However, usually it's better to register specific paths first.
 	router.HandleFunc("/tag", SpitTag)
 	router.HandleFunc("/hostname", SpitHostname)
 	router.HandleFunc("/both", SpitBoth)
 	router.HandleFunc("/primetime", PrimeTime)
 	router.HandleFunc("/metrics", PrometheusMetrics)
+	router.HandleFunc("/echo", EchoHandler)
+
+	// Static files - capture everything else
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./static/"))))
 
 	log.Fatal(http.ListenAndServe(":8585", router))
 }
 
 func PrometheusMetrics(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, promhttp.Handler())
+	promhttp.Handler().ServeHTTP(w, r)
 }
 
 func SpitTag(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +47,7 @@ func SpitHostname(w http.ResponseWriter, r *http.Request) {
 
 func SpitBoth(w http.ResponseWriter, r *http.Request) {
 	localHostname := os.Getenv("HOSTNAME")
-	fmt.Fprintln(w, "v3 %v", localHostname)
+	fmt.Fprintf(w, "v3 %v\n", localHostname)
 }
 
 func PrimeTime(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +55,8 @@ func PrimeTime(w http.ResponseWriter, r *http.Request) {
 	var x, y, n int
 	nsqrt := math.Sqrt(N)
 
-	is_prime := [N]bool{}
+	// Use make for large slice to avoid stack overflow issues/ensure heap allocation
+	is_prime := make([]bool, N)
 
 	start := time.Now()
 
@@ -82,7 +88,8 @@ func PrimeTime(w http.ResponseWriter, r *http.Request) {
 	is_prime[2] = true
 	is_prime[3] = true
 
-	primes := make([]int, 0, 1270606)
+	// Pre-allocating somewhat less than N/ln(N)
+	primes := make([]int, 0, 50847534) // ~N/ln(N) for 10^9 is ~50M
 	for x = 0; x < len(is_prime)-1; x++ {
 		if is_prime[x] {
 			primes = append(primes, x)
@@ -90,13 +97,45 @@ func PrimeTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	elapsed := time.Since(start)
-
-	// primes is now a slice that contains all the
-	// primes numbers up to N
-
-	// let's print them
-	//for _, x := range primes {
-	//    fmt.Println(x)
-	//}
 	fmt.Fprintln(w, elapsed)
+}
+
+type EchoResponse struct {
+	Headers map[string][]string `json:"headers"`
+	Method  string              `json:"method"`
+	Body    string              `json:"body"`
+	Params  map[string]string   `json:"params"`
+	URL     string              `json:"url"`
+	Host    string              `json:"host"`
+}
+
+func EchoHandler(w http.ResponseWriter, r *http.Request) {
+	// Delay logic
+	delayStr := r.URL.Query().Get("delay")
+	if delayStr != "" {
+		delay, err := time.ParseDuration(delayStr)
+		if err == nil {
+			time.Sleep(delay)
+		}
+	}
+
+	body, _ := io.ReadAll(r.Body)
+	defer r.Body.Close()
+
+	params := make(map[string]string)
+	for k, v := range r.URL.Query() {
+		params[k] = v[0]
+	}
+
+	resp := EchoResponse{
+		Headers: r.Header,
+		Method:  r.Method,
+		Body:    string(body),
+		Params:  params,
+		URL:     r.URL.String(),
+		Host:    r.Host,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
 }
